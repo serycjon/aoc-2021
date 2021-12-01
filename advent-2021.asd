@@ -6,6 +6,6 @@
   :license  "Specify license here"
   :version "0.0.1"
   :serial t
-  :depends-on (#:uiop #:iterate)
+  :depends-on (#:uiop #:iterate #:fiveam)
   :components ((:file "package")
                (:file "01")))

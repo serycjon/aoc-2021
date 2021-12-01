@@ -1,6 +1,9 @@
 (in-package #:advent-2021)
 
-(defparameter in1 (mapcar #'parse-integer (uiop:read-file-lines #P"./inputs/01-1.txt")))
+(defun read-input (path)
+  (mapcar #'parse-integer (uiop:read-file-lines path)))
+
+(defparameter in1 (read-input #P"./inputs/01-1.txt"))
 
 (defun n-increases (xs)
  (iter
@@ -40,3 +43,16 @@
 
 (let ((inp in1))
   (n-increases (sum-groups inp 3)))
+
+(def-suite all-tests)
+
+(def-suite day-01 :in all-tests)
+(in-suite day-01)
+
+(test group-sums
+  (is (equal
+       (sum-groups (read-input #P"./inputs/01-test.txt") 3)
+       (list 607 618 618 617 647 716 769 792))))
+
+(defun run-tests ()
+  (run! 'all-tests))
