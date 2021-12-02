@@ -38,11 +38,13 @@
     (let ((group-sum (sum-first-n sub-xs group-sz)))
       (when group-sum (collect group-sum)))))
 
-(let ((inp in1))
-  (n-increases inp))
+(defun d1-p1 ()
+ (let ((inp in1))
+   (n-increases inp)))
 
-(let ((inp in1))
-  (n-increases (sum-groups inp 3)))
+(defun d1-p2 ()
+  (let ((inp in1))
+    (n-increases (sum-groups inp 3))))
 
 (def-suite all-tests)
 
