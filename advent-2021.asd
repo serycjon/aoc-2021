@@ -8,4 +8,5 @@
   :serial t
   :depends-on (#:uiop #:iterate #:fiveam)
   :components ((:file "package")
-               (:file "01")))
+               (:file "01")
+	       (:file "02")))
