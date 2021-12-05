@@ -6,7 +6,7 @@
   :license  "Specify license here"
   :version "0.0.1"
   :serial t
-  :depends-on (#:uiop #:iterate #:fiveam #:parseq #:fset)
+  :depends-on (#:uiop #:iterate #:fiveam #:parseq #:fset #:alexandria)
   :components ((:file "package")
                (:file "01")
 	       (:file "02")
