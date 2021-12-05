@@ -6,9 +6,10 @@
   :license  "Specify license here"
   :version "0.0.1"
   :serial t
-  :depends-on (#:uiop #:iterate #:fiveam #:parseq)
+  :depends-on (#:uiop #:iterate #:fiveam #:parseq #:fset)
   :components ((:file "package")
                (:file "01")
 	       (:file "02")
 	       (:file "03")
-	       (:file "04")))
+	       (:file "04")
+	       (:file "05")))
