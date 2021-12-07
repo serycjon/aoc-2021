@@ -7,10 +7,6 @@
   :version "0.0.1"
   :serial t
   :depends-on (#:uiop #:iterate #:fiveam #:parseq #:fset #:alexandria)
-  :components ((:file "package")
-               (:file "01")
-	       (:file "02")
-	       (:file "03")
-	       (:file "04")
-	       (:file "05")
-	       (:file "06")))
+  :components #.(append '((:file "package"))
+			(loop for day from 1 to 7
+			      collect (list :file (format nil "~2,'0D" day)))))
