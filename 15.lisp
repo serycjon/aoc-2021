@@ -53,45 +53,35 @@
 		      cell-row cell-col)))))))
     result))
 
-(defun add-or-update-cost (visited queue coord new-path-cost new-queue-cost)
-  (if (aref visited (realpart coord) (imagpart coord))
-      (let ((node (queues:queue-find queue (lambda (x) (= (first x) coord)))))
-	(destructuring-bind (old-coord old-path-cost old-queue-cost) (with-slots ((value queues::value)) node value)
-	  (declare (ignore old-coord old-path-cost))
-	  (when (< new-queue-cost old-queue-cost)
-	    (queues::queue-decrease queue node
-				    (list coord new-path-cost new-queue-cost)))))
-      (queues:qpush queue (list coord new-path-cost new-queue-cost))))
-
 (defun shortest-path (costs)
-  (let ((queue (queues:make-queue :priority-queue
-				  :compare (lambda (a b) (< (third a) (third b)))))
+  (let ((queue (priority-queue:make-pqueue #'<))
 	(goal (complex (- (array-dimension costs 0) 1)
 		       (- (array-dimension costs 1) 1)))
 	(deltas (list (complex -1 0) (complex 1 0) (complex 0 -1) (complex 0 1)))
 	(closed (make-array (array-dimensions costs) :initial-element nil))
-	(visited (make-array (array-dimensions costs) :initial-element nil)))
-    
-    (flet ((heuristic (coord) (+ (- (realpart goal) (realpart coord))
-				 (- (imagpart goal) (imagpart coord)))))
-      ;; init
-      (queues:qpush queue (list (complex 0 0) 0 (heuristic (complex 0 0))))
-      (setf (aref closed 0 0) t)
+	(path-costs (make-array (array-dimensions costs) :initial-element 100000)))
 
-      (iter
-	;; (for i below 2)
-	(for (coord path-cost queue-cost) = (queues:qpop queue))
-	(declare (ignorable queue-cost))
-	(unless coord (error "pop from empty queue"))
-	(when (= goal coord) (return path-cost))
-	(iter (for delta in deltas)
-	  (let ((neighbor (+ coord delta)))
-	    (when (array-in-bounds-p costs (realpart neighbor) (imagpart neighbor))
-	      (unless (aref closed (realpart neighbor) (imagpart neighbor))
-		(let ((neigh-path-cost (+ path-cost (aref costs (realpart neighbor) (imagpart neighbor)))))
-		  (add-or-update-cost visited queue neighbor neigh-path-cost (+ neigh-path-cost (heuristic neighbor)))
-		  (setf (aref visited (realpart neighbor) (imagpart neighbor)) t))))))
-	(setf (aref closed (realpart coord) (imagpart coord)) t)))))
+    ;; init
+    (priority-queue:pqueue-push (complex 0 0) 0 queue)
+    (setf (aref closed 0 0) t)
+    (setf (aref path-costs 0 0) 0)
+
+    (iter
+      ;; (for i below 2)
+      (for (coord path-cost) = (multiple-value-list (priority-queue:pqueue-pop queue)))
+      ;; (list (realpart coord) (imagpart coord) path-cost)
+      (when (= goal coord) (return path-cost))
+      (iter (for delta in deltas)
+	(let* ((neighbor (+ coord delta))
+	       (n-row (realpart neighbor))
+	       (n-col (imagpart neighbor)))
+	  (when (and (array-in-bounds-p costs n-row n-col)
+		     (not (aref closed n-row n-col)))
+	    (let ((neigh-path-cost (+ path-cost (aref costs n-row n-col))))
+	      (when (< neigh-path-cost (aref path-costs n-row n-col))
+		(priority-queue:pqueue-push neighbor neigh-path-cost queue)
+		(setf (aref path-costs n-row n-col) neigh-path-cost))))))
+      (setf (aref closed (realpart coord) (imagpart coord)) t))))
 
 (defun d15-p2 (&optional (inp in15))
   ;; FFS, I did not read the task description carefully, thought you can only go right and down
