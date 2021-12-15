@@ -63,7 +63,6 @@
 
     ;; init
     (priority-queue:pqueue-push (complex 0 0) 0 queue)
-    (setf (aref closed 0 0) t)
     (setf (aref path-costs 0 0) 0)
 
     (iter
@@ -71,17 +70,19 @@
       (for (coord path-cost) = (multiple-value-list (priority-queue:pqueue-pop queue)))
       ;; (list (realpart coord) (imagpart coord) path-cost)
       (when (= goal coord) (return path-cost))
-      (iter (for delta in deltas)
-	(let* ((neighbor (+ coord delta))
-	       (n-row (realpart neighbor))
-	       (n-col (imagpart neighbor)))
-	  (when (and (array-in-bounds-p costs n-row n-col)
-		     (not (aref closed n-row n-col)))
-	    (let ((neigh-path-cost (+ path-cost (aref costs n-row n-col))))
-	      (when (< neigh-path-cost (aref path-costs n-row n-col))
-		(priority-queue:pqueue-push neighbor neigh-path-cost queue)
-		(setf (aref path-costs n-row n-col) neigh-path-cost))))))
-      (setf (aref closed (realpart coord) (imagpart coord)) t))))
+      (unless (aref closed (realpart coord) (imagpart coord))
+	(iter (for delta in deltas)
+	  (let* ((neighbor (+ coord delta))
+		 (n-row (realpart neighbor))
+		 (n-col (imagpart neighbor)))
+	    (when (and (array-in-bounds-p costs n-row n-col)
+		       (not (aref closed n-row n-col)))
+	      (let ((neigh-path-cost (+ path-cost (aref costs n-row n-col))))
+		(when (< neigh-path-cost (aref path-costs n-row n-col))
+		  (priority-queue:pqueue-push neighbor neigh-path-cost queue)
+		  (setf (aref path-costs n-row n-col) neigh-path-cost))))))
+
+	(setf (aref closed (realpart coord) (imagpart coord)) t)))))
 
 (defun d15-p2 (&optional (inp in15))
   ;; FFS, I did not read the task description carefully, thought you can only go right and down
