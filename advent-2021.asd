@@ -8,5 +8,5 @@
   :serial t
   :depends-on (#:uiop #:iterate #:fiveam #:parseq #:fset #:alexandria #:cl-ppcre #:queues.priority-queue #:priority-queue)
   :components #.(append '((:file "package"))
-			(loop for day from 1 to 15
+			(loop for day from 1 to 16
 			      collect (list :file (format nil "~2,'0D" day)))))
