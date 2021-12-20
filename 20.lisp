@@ -53,17 +53,18 @@
     interesting))
 
 (defun sample-map-patch (map coord known-coords value-at-infinity)
-  (let ((values))
-    (iter (for dr from -1 to 1)
-      (iter (for dc from -1 to 1)
-	(let ((query (+ coord (complex dr dc))))
-	  (push (if (fset:lookup known-coords query)
-		    (if (fset:lookup map query) 1 0)
-		    value-at-infinity)
-		values))))
-    (parse-integer
-     (format nil "~{~a~}" (nreverse values))
-     :radix 2)))
+  (parse-integer
+   (with-output-to-string (stream)
+     (iter (for dr from -1 to 1)
+       (iter (for dc from -1 to 1)
+	 (let ((query (+ coord (complex dr dc))))
+	   (write-char
+	    (if (= 1 (if (fset:lookup known-coords query)
+			 (if (fset:lookup map query) 1 0)
+			 value-at-infinity))
+		#\1 #\0)
+	    stream)))))
+   :radix 2))
 
 (defun step-gol (rules map known-coords value-at-infinity)
   (let ((interesting (map-interesting-pixels map))
@@ -137,8 +138,8 @@
 (in-suite day-20)
 
 (test d20-p1-example
-  (is (= 34 (sample-map-patch (first (second in20-test)) (complex 2 2))))
+  (is (= 34 (sample-map-patch (first (second in20-test)) (complex 2 2) (second (second in20-test)) 0)))
   (is (= 35 (d20-p1 in20-test))))
 
-(test d20-p2-example
-  (is (= (d20-p2 in20-test) 42)))
+;; (test d20-p2-example
+;;   (is (= 3351 (d20-p2 in20-test))))
