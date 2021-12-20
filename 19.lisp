@@ -69,10 +69,6 @@
 	  (when (pure-rot-p R)
 	    (in outer (collect R))))))))
 
-(defparameter *all-R-mats* (all-rot-matrices))
-
-(assert (= (length *all-R-mats*) 24))
-
 (defun pure-rot-p (M)
   (= 1 (determinant-3x3 M)))
 
@@ -83,6 +79,9 @@
      (+ (* (aref M 0 2) (aref M 1 1) (aref M 2 0))
 	(* (aref M 1 2) (aref M 2 1) (aref M 0 0))
 	(* (aref M 2 2) (aref M 0 1) (aref M 1 0)))))
+
+(defparameter *all-R-mats* (all-rot-matrices))
+(assert (= (length *all-R-mats*) 24))
 
 (defun rotate-pt (R pt)
   (iter (for i below 3)
