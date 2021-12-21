@@ -50,14 +50,16 @@
    sums))
 
 (defparameter *dirac-3rolls*
-  (make-array 7 :initial-contents '(3 4 5 6 7 8 9)))
+  (make-array 7 :initial-contents '(3 4 5 6 7 8 9) :element-type 'fixnum))
 (defparameter *dirac-3roll-counts*
-  (make-array 7 :initial-contents '(1 3 6 7 6 3 1)))
+  (make-array 7 :initial-contents '(1 3 6 7 6 3 1) :element-type 'fixnum))
 
 (defun propagate-single (state new-state p1-score p1-pos-i p2-score p2-pos-i p1-turn)
   (declare (optimize (speed 3) (debug 0) (safety 0)))
   (declare (type (simple-array fixnum (32 10 32 10)) state new-state))
-  (declare (type (simple-array fixnum 7) *dirac-3rolls* *dirac-3roll-counts*))
+  (declare (type (simple-array fixnum (7)) *dirac-3rolls* *dirac-3roll-counts*))
+  (declare (type fixnum p1-score p1-pos-i p2-score p2-pos-i))
+  (declare (type boolean p1-turn))
   (let ((cur-count (aref state p1-score p1-pos-i p2-score p2-pos-i))
 	(cur-p1-pos (1+ p1-pos-i))
 	(cur-p2-pos (1+ p2-pos-i)))
@@ -71,7 +73,8 @@
 	       (new-p2-pos-i (- new-p2-pos 1))
 	       (new-p1-score (if p1-turn (+ p1-score new-p1-pos) p1-score))
 	       (new-p2-score (if p1-turn p2-score (+ p2-score new-p2-pos))))
-	  (incf (aref new-state new-p1-score new-p1-pos-i new-p2-score new-p2-pos-i) (* roll-count cur-count)))))))
+	  (declare (type fixnum new-p1-pos new-p2-pos new-p1-pos-i new-p2-pos-i new-p1-score new-p2-score))
+	  (incf (aref new-state new-p1-score new-p1-pos-i new-p2-score new-p2-pos-i) (the fixnum (* roll-count cur-count))))))))
 
 (defun propagate-state (state new-state p1-turn)
   (declare (optimize (speed 3) (debug 0) (safety 0)))
@@ -117,6 +120,10 @@
 	    (setf (aref state p1-score p1-pos-i p2-score p2-pos-i) 0)))))
     (values p1-wins p2-wins)))
 
+(defun sum-array (xs)
+  (iter (for i below (array-total-size xs))
+    (summing (row-major-aref xs i))))
+
 (defun d21-p2 (&optional (inp in21))
   (let ((state (make-array (list 32 10 32 10) :element-type 'fixnum))
 	(new-state (make-array (list 32 10 32 10) :element-type 'fixnum))
@@ -125,13 +132,14 @@
 	(p2-wins 0))
     (setf (aref state 0 (- (first inp) 1) 0 (- (second inp) 1)) 1)
     (iter (for i below 21)
+      (iter (for new-i below (array-total-size new-state)) (setf (row-major-aref new-state new-i) (the fixnum 0)))
       (propagate-state state new-state p1-turn)
+      ;; (format t "~a ~a~%" (sum-array state) (sum-array new-state))
+      (rotatef state new-state)
       (setq p1-turn (not p1-turn))
       (multiple-value-bind (new-p1-wins new-p2-wins) (count-and-terminate-wins state)
 	(incf p1-wins new-p1-wins)
-	(incf p2-wins new-p2-wins))
-      (rotatef state new-state)
-      (iter (for new-i below (array-total-size new-state)) (setf (row-major-aref new-state new-i) (the fixnum 0))))
+	(incf p2-wins new-p2-wins)))
     (max p1-wins p2-wins)))
 
 ;; (d21-p2 in21-test)
